@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 
+	"github.com/dylanturn/terraform-provider-octal/internal/octal"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/hashicorp/terraform-provider-scaffolding/internal/provider"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -29,16 +29,16 @@ var (
 func main() {
 	var debugMode bool
 
-	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	flag.BoolVar(&debugMode, "debug", false, "set to true to run the octal with support for debuggers like delve")
 	flag.Parse()
 
 	opts := &plugin.ServeOpts{
 		Debug: debugMode,
 
-		// TODO: update this string with the full name of your provider as used in your configs
-		ProviderAddr: "registry.terraform.io/hashicorp/scaffolding",
+		// TODO: update this string with the full name of your octal as used in your configs
+		ProviderAddr: "registry.terraform.io/hashicorp/octal",
 
-		ProviderFunc: provider.New(version),
+		ProviderFunc: octal.New(version),
 	}
 
 	plugin.Serve(opts)

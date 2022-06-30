@@ -1,3 +1,3 @@
-provider "scaffolding" {
+provider "octal" {
   # example configuration here
 }
