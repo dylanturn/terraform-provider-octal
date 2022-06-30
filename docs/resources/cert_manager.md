@@ -50,8 +50,6 @@ Optional:
 
 Read-Only:
 
-- `api_version` (String) The apiVersion used by this deployment
-- `kind` (String) The kind of object
 - `resource_version` (String) An opaque value that represents the internal version of this deployment that can be used by clients to determine when cert-manager-cainjector has changed. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
 - `uid` (String) The unique in time and space value for this deployment. More info: http://kubernetes.io/docs/user-guide/identifiers#uids
 
@@ -71,8 +69,6 @@ Optional:
 
 Read-Only:
 
-- `api_version` (String) The apiVersion used by this deployment
-- `kind` (String) The kind of object
 - `resource_version` (String) An opaque value that represents the internal version of this deployment that can be used by clients to determine when cert-manager-cainjector has changed. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
 - `uid` (String) The unique in time and space value for this deployment. More info: http://kubernetes.io/docs/user-guide/identifiers#uids
 
@@ -88,8 +84,6 @@ Optional:
 
 Read-Only:
 
-- `api_version` (String) The apiVersion used by this namespace
-- `kind` (String) The kind of object
 - `resource_version` (String) An opaque value that represents the internal version of this namespace that can be used by clients to determine when cert-manager has changed. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
 - `uid` (String) The unique in time and space value for this namespace. More info: http://kubernetes.io/docs/user-guide/identifiers#uids
 
@@ -109,8 +103,6 @@ Optional:
 
 Read-Only:
 
-- `api_version` (String) The apiVersion used by this deployment
-- `kind` (String) The kind of object
 - `resource_version` (String) An opaque value that represents the internal version of this deployment that can be used by clients to determine when cert-manager-cainjector has changed. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
 - `uid` (String) The unique in time and space value for this deployment. More info: http://kubernetes.io/docs/user-guide/identifiers#uids
 
