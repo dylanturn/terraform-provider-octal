@@ -1,21 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations: {}
-  generation: 3
-  labels: {}
   name: cert-manager
   namespace: cert-manager
+  labels:
+    app.kubernetes.io/instance: ""
+    app.kubernetes.io/version: ""
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: cert-manager
+    app.kubernetes.io/created-by: terraform
+    app.kubernetes.io/managed-by: terraform
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
-  revisionHistoryLimit: 10
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: cert-manager
-      app.kubernetes.io/instance: cunning-martin
-      app.kubernetes.io/managed-by: terraform
+      app.kubernetes.io/instance: ""
+      app.kubernetes.io/version: ""
       app.kubernetes.io/name: cert-manager
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/part-of: cert-manager
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -23,19 +29,20 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      name: cert-manager
+      namespace: cert-manager
+      labels:
+        app.kubernetes.io/instance: ""
+        app.kubernetes.io/version: ""
+        app.kubernetes.io/name: cert-manager
+        app.kubernetes.io/component: controller
+        app.kubernetes.io/part-of: cert-manager
+        app.kubernetes.io/created-by: terraform
+        app.kubernetes.io/managed-by: terraform
       annotations:
         prometheus.io/path: /metrics
         prometheus.io/port: "9402"
         prometheus.io/scrape: "true"
-      labels:
-        app: cert-manager
-        app.kubernetes.io/component: controller
-        app.kubernetes.io/instance: cunning-martin
-        app.kubernetes.io/managed-by: terraform
-        app.kubernetes.io/name: cert-manager
-        app.kubernetes.io/part-of: cert-manager
-      name: cert-manager
-      namespace: cert-manager
       spec:
         automountServiceAccountToken: false
         containers:
