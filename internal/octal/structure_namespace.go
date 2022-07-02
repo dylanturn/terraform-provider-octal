@@ -30,14 +30,18 @@ func getNamespace(ctx context.Context, d *schema.ResourceData, meta interface{})
 	if len(namespaces.Items) < 1 {
 		return nil, errors.New(fmt.Sprintf("Couldn't find object with the id! Objects Found: %s", len(namespaces.Items)))
 	}
+
+	updateMetadata("namespace", false, &namespaces.Items[0].ObjectMeta, d)
+
 	return &namespaces.Items[0], nil
 }
 
 func createNamespace(ctx context.Context, meta interface{}, d *schema.ResourceData, path string) diag.Diagnostics {
 	var diags diag.Diagnostics
-	// Get the K8s client
-	client := meta.(*apiClient).clientset
 
+	/*******************************\
+	** Load Manifest Template      **
+	\*******************************/
 	// This loads the namespace from the manifest template into a v1.Namespace object
 	nsObjMfst, nsObjMfstErr := loadNamespaceManifest(path)
 	if nsObjMfstErr != nil {
@@ -45,11 +49,19 @@ func createNamespace(ctx context.Context, meta interface{}, d *schema.ResourceDa
 		return diags
 	}
 
+	/*******************************\
+	** Update Manifest MetaData    **
+	\*******************************/
 	// This applied the updates provided by the Terraform resource to the base Namespace Object
-	updateMetadata("namespace", &nsObjMfst.ObjectMeta, d)
+	updateMetadata("namespace", false, &nsObjMfst.ObjectMeta, d)
 
-	// Here we create the namespace using a template object customized by the resource inputs.
+	/*******************************\
+	** Create Kubernetes Object    **
+	\*******************************/
+	// Here we create the object using a template object customized by the resource inputs.
 	tflog.Info(ctx, fmt.Sprintf("[INFO] Creating new namespace: %#v", nsObjMfst.Name))
+	// Get the K8s client
+	client := meta.(*apiClient).clientset
 	_, err := client.CoreV1().Namespaces().Create(ctx, nsObjMfst, metav1.CreateOptions{})
 	if err != nil {
 		tflog.Error(ctx, err.Error())
@@ -57,6 +69,9 @@ func createNamespace(ctx context.Context, meta interface{}, d *schema.ResourceDa
 	}
 	tflog.Info(ctx, "[INFO] created a resource")
 
+	/*******************************\
+	** Read New Object Back        **
+	\*******************************/
 	// Here we appear to read back the namespace state to make sure it's consistent?
 	readNamespace(ctx, d, meta)
 
@@ -71,8 +86,7 @@ func readNamespace(ctx context.Context, d *schema.ResourceData, meta interface{}
 		return diags
 	}
 
-	d.Set("namespace", flattenMetadata(&namespace.ObjectMeta))
-
+	d.Set("namespace", flattenMetadata("namespace", &namespace.ObjectMeta))
 	return diags
 }
 
@@ -85,7 +99,7 @@ func updateNamespace(ctx context.Context, d *schema.ResourceData, meta interface
 		return diags
 	}
 
-	updateMetadata("namespace", &namespace.ObjectMeta, d)
+	updateMetadata("namespace", false, &namespace.ObjectMeta, d)
 
 	client := meta.(*apiClient).clientset
 	client.CoreV1().Namespaces().Update(ctx, namespace, metav1.UpdateOptions{})

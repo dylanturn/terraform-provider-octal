@@ -21,7 +21,7 @@ func init() {
 
 	// Customize the content of descriptions when output. For example you can add defaults on
 	// to the exported descriptions if present.
-	// schema.SchemaDescriptionBuilder = func(s *schema.Schema) string {
+	// octal-schema.SchemaDescriptionBuilder = func(s *octal-schema.Schema) string {
 	// 	desc := s.Description
 	// 	if s.Default != nil {
 	// 		desc += fmt.Sprintf(" Defaults to `%v`.", s.Default)

@@ -1,12 +1,13 @@
-package octal
+package octal_schema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func octalDeploySpecSchema(componentName string) *schema.Resource {
+func DeploymentSchema() map[string]*schema.Schema {
 
-	componentSpec := metadataSchema()
+	componentSpec := Metadata()
+
 	componentSpec["name"] = &schema.Schema{
 		Type:        schema.TypeString,
 		Optional:    false,
@@ -15,10 +16,9 @@ func octalDeploySpecSchema(componentName string) *schema.Resource {
 	}
 	componentSpec["component"] = &schema.Schema{
 		Type:        schema.TypeString,
-		Optional:    true,
+		Optional:    false,
 		Computed:    true,
 		Description: "The name of this deployment",
-		// Default:     componentName,
 	}
 	componentSpec["image_tag"] = &schema.Schema{
 		Type:        schema.TypeString,
@@ -44,8 +44,5 @@ func octalDeploySpecSchema(componentName string) *schema.Resource {
 		Computed:    true,
 		Description: "Determines when the image should be pulled prior to starting the container. `Always`: Always pull the image. | `IfNotPresent`: Only pull the image if it does not already exist on the node. | `Never`: Never pull the image",
 	}
-
-	return &schema.Resource{
-		Schema: componentSpec,
-	}
+	return componentSpec
 }

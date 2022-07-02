@@ -1,11 +1,11 @@
-package octal
+package octal_schema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func namespaceSchema() *schema.Resource {
-	componentSpec := metadataSchema()
+func RoleSchema() *schema.Resource {
+	componentSpec := Metadata()
 
 	componentSpec["name"] = &schema.Schema{
 		Type:        schema.TypeString,

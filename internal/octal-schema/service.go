@@ -1,11 +1,11 @@
-package octal
+package octal_schema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func namespaceSchema() *schema.Resource {
-	componentSpec := metadataSchema()
+func Service() *schema.Resource {
+	componentSpec := Metadata()
 
 	componentSpec["name"] = &schema.Schema{
 		Type:        schema.TypeString,
@@ -19,7 +19,6 @@ func namespaceSchema() *schema.Resource {
 		Computed:    true,
 		Description: "The name of this deployment",
 	}
-
 	return &schema.Resource{
 		Schema: componentSpec,
 	}

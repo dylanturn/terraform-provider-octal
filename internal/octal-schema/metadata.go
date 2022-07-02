@@ -1,10 +1,10 @@
-package octal
+package octal_schema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func metadataSchema() map[string]*schema.Schema {
+func Metadata() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"uid": {
 			Type:        schema.TypeString,

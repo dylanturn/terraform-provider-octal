@@ -24,16 +24,19 @@ resource "octal_cert_manager" "cert_manager" {
 
 - `cainjector` (Block List, Min: 1, Max: 1) Additional annotations to add to the deployment (see [below for nested schema](#nestedblock--cainjector))
 - `controller` (Block List, Min: 1, Max: 1) Additional annotations to add to the deployment (see [below for nested schema](#nestedblock--controller))
-- `namespace` (Block List, Min: 1, Max: 1) Additional annotations to add to the namespace (see [below for nested schema](#nestedblock--namespace))
 - `webhook` (Block List, Min: 1, Max: 1) Additional annotations to add to the deployment (see [below for nested schema](#nestedblock--webhook))
 
 ### Optional
 
+- `name` (String) A name that will be given to the deployment
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `version` (String) A name that will be given to the deployment
 
 ### Read-Only
 
+- `custom_resources` (List of Object) Additional annotations to add to the deployment (see [below for nested schema](#nestedatt--custom_resources))
 - `id` (String) The ID of this resource.
+- `namespace` (List of Object) Additional annotations to add to the namespace (see [below for nested schema](#nestedatt--namespace))
 
 <a id="nestedblock--cainjector"></a>
 ### Nested Schema for `cainjector`
@@ -46,12 +49,96 @@ Optional:
 - `image_repository` (String) The image repository to use when pulling images
 - `image_tag` (String) The image tag used by the deployment
 - `labels` (Map of String) Additional labels to add to the deployment
-- `name` (String) A name that will be given to the deployment
 
 Read-Only:
 
-- `resource_version` (String) An opaque value that represents the internal version of this deployment that can be used by clients to determine when cert-manager-cainjector has changed. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
-- `uid` (String) The unique in time and space value for this deployment. More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+- `cluster_role_bindings` (List of Object) (see [below for nested schema](#nestedatt--cainjector--cluster_role_bindings))
+- `cluster_roles` (List of Object) (see [below for nested schema](#nestedatt--cainjector--cluster_roles))
+- `component` (String) The name of this deployment
+- `name` (String) The name of this deployment
+- `resource_version` (String) An opaque value that represents the internal version of this component that can be used by clients to determine when it has changed
+- `role_bindings` (List of Object) (see [below for nested schema](#nestedatt--cainjector--role_bindings))
+- `roles` (List of Object) (see [below for nested schema](#nestedatt--cainjector--roles))
+- `service` (List of Object) (see [below for nested schema](#nestedatt--cainjector--service))
+- `service_account` (List of Object) (see [below for nested schema](#nestedatt--cainjector--service_account))
+- `uid` (String) The unique in time and space value for component
+
+<a id="nestedatt--cainjector--cluster_role_bindings"></a>
+### Nested Schema for `cainjector.cluster_role_bindings`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--cainjector--cluster_roles"></a>
+### Nested Schema for `cainjector.cluster_roles`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--cainjector--role_bindings"></a>
+### Nested Schema for `cainjector.role_bindings`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--cainjector--roles"></a>
+### Nested Schema for `cainjector.roles`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--cainjector--service"></a>
+### Nested Schema for `cainjector.service`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--cainjector--service_account"></a>
+### Nested Schema for `cainjector.service_account`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
 
 
 <a id="nestedblock--controller"></a>
@@ -65,27 +152,96 @@ Optional:
 - `image_repository` (String) The image repository to use when pulling images
 - `image_tag` (String) The image tag used by the deployment
 - `labels` (Map of String) Additional labels to add to the deployment
-- `name` (String) A name that will be given to the deployment
 
 Read-Only:
 
-- `resource_version` (String) An opaque value that represents the internal version of this deployment that can be used by clients to determine when cert-manager-cainjector has changed. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
-- `uid` (String) The unique in time and space value for this deployment. More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+- `cluster_role_bindings` (List of Object) (see [below for nested schema](#nestedatt--controller--cluster_role_bindings))
+- `cluster_roles` (List of Object) (see [below for nested schema](#nestedatt--controller--cluster_roles))
+- `component` (String) The name of this deployment
+- `name` (String) The name of this deployment
+- `resource_version` (String) An opaque value that represents the internal version of this component that can be used by clients to determine when it has changed
+- `role_bindings` (List of Object) (see [below for nested schema](#nestedatt--controller--role_bindings))
+- `roles` (List of Object) (see [below for nested schema](#nestedatt--controller--roles))
+- `service` (List of Object) (see [below for nested schema](#nestedatt--controller--service))
+- `service_account` (List of Object) (see [below for nested schema](#nestedatt--controller--service_account))
+- `uid` (String) The unique in time and space value for component
 
-
-<a id="nestedblock--namespace"></a>
-### Nested Schema for `namespace`
-
-Optional:
-
-- `annotations` (Map of String) Additional annotations to add to the deployment
-- `labels` (Map of String) Additional labels to add to the deployment
-- `name` (String) A name that will be given to the deployment
+<a id="nestedatt--controller--cluster_role_bindings"></a>
+### Nested Schema for `controller.cluster_role_bindings`
 
 Read-Only:
 
-- `resource_version` (String) An opaque value that represents the internal version of this namespace that can be used by clients to determine when cert-manager has changed. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
-- `uid` (String) The unique in time and space value for this namespace. More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--controller--cluster_roles"></a>
+### Nested Schema for `controller.cluster_roles`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--controller--role_bindings"></a>
+### Nested Schema for `controller.role_bindings`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--controller--roles"></a>
+### Nested Schema for `controller.roles`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--controller--service"></a>
+### Nested Schema for `controller.service`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--controller--service_account"></a>
+### Nested Schema for `controller.service_account`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
 
 
 <a id="nestedblock--webhook"></a>
@@ -99,12 +255,124 @@ Optional:
 - `image_repository` (String) The image repository to use when pulling images
 - `image_tag` (String) The image tag used by the deployment
 - `labels` (Map of String) Additional labels to add to the deployment
-- `name` (String) A name that will be given to the deployment
 
 Read-Only:
 
-- `resource_version` (String) An opaque value that represents the internal version of this deployment that can be used by clients to determine when cert-manager-cainjector has changed. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
-- `uid` (String) The unique in time and space value for this deployment. More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+- `cluster_role_bindings` (List of Object) (see [below for nested schema](#nestedatt--webhook--cluster_role_bindings))
+- `cluster_roles` (List of Object) (see [below for nested schema](#nestedatt--webhook--cluster_roles))
+- `component` (String) The name of this deployment
+- `mutating-webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook--mutating-webhook))
+- `name` (String) The name of this deployment
+- `resource_version` (String) An opaque value that represents the internal version of this component that can be used by clients to determine when it has changed
+- `role_bindings` (List of Object) (see [below for nested schema](#nestedatt--webhook--role_bindings))
+- `roles` (List of Object) (see [below for nested schema](#nestedatt--webhook--roles))
+- `service` (List of Object) (see [below for nested schema](#nestedatt--webhook--service))
+- `service_account` (List of Object) (see [below for nested schema](#nestedatt--webhook--service_account))
+- `uid` (String) The unique in time and space value for component
+- `validating-webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook--validating-webhook))
+
+<a id="nestedatt--webhook--cluster_role_bindings"></a>
+### Nested Schema for `webhook.cluster_role_bindings`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--webhook--cluster_roles"></a>
+### Nested Schema for `webhook.cluster_roles`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--webhook--mutating-webhook"></a>
+### Nested Schema for `webhook.mutating-webhook`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--webhook--role_bindings"></a>
+### Nested Schema for `webhook.role_bindings`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--webhook--roles"></a>
+### Nested Schema for `webhook.roles`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--webhook--service"></a>
+### Nested Schema for `webhook.service`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--webhook--service_account"></a>
+### Nested Schema for `webhook.service_account`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--webhook--validating-webhook"></a>
+### Nested Schema for `webhook.validating-webhook`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
 
 
 <a id="nestedblock--timeouts"></a>
@@ -113,5 +381,31 @@ Read-Only:
 Optional:
 
 - `delete` (String)
+
+
+<a id="nestedatt--custom_resources"></a>
+### Nested Schema for `custom_resources`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
+
+
+<a id="nestedatt--namespace"></a>
+### Nested Schema for `namespace`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `component` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `resource_version` (String)
+- `uid` (String)
 
 
