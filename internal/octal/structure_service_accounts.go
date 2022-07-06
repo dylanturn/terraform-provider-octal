@@ -2,7 +2,6 @@ package octal
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,29 +15,6 @@ func loadServiceAccountManifest(manifestPath string) (*v1.ServiceAccount, error)
 	serviceAccount := &v1.ServiceAccount{}
 	err := loadManifest(manifestPath).Decode(&serviceAccount)
 	return serviceAccount, err
-}
-
-func getServiceAccount(ctx context.Context, d *schema.ResourceData, meta interface{}) (*v1.ServiceAccount, error) {
-	client := meta.(*apiClient).clientset
-
-	namespace := d.Get("namespace").([]interface{})[0].(map[string]interface{})
-
-	serviceAccounts, err := client.CoreV1().ServiceAccounts(namespace["name"].(string)).List(ctx, octalListOptions(d.Id()))
-
-	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Failed to get objects! %s", err.Error()))
-		return nil, err
-	}
-	if len(serviceAccounts.Items) > 1 {
-		return nil, errors.New(fmt.Sprintf("Found more than one object with the same id! Objects Found: %s", len(serviceAccounts.Items)))
-	}
-	if len(serviceAccounts.Items) < 1 {
-		return nil, errors.New(fmt.Sprintf("Couldn't find object with the id! Objects Found: %s", len(serviceAccounts.Items)))
-	}
-
-	updateMetadata("ServiceAccount", false, &serviceAccounts.Items[0].ObjectMeta, d)
-
-	return &serviceAccounts.Items[0], nil
 }
 
 func createServiceAccount(ctx context.Context, meta interface{}, d *schema.ResourceData, path string) diag.Diagnostics {
@@ -58,7 +34,7 @@ func createServiceAccount(ctx context.Context, meta interface{}, d *schema.Resou
 	** Update Manifest MetaData    **
 	\*******************************/
 	// This applied the updates provided by the Terraform resource to the base Namespace Object
-	updateMetadata("ServiceAccount", false, &objManifest.ObjectMeta, d)
+	updateMetadata(ctx, "ServiceAccount", false, &objManifest.ObjectMeta, d)
 
 	/*******************************\
 	** Create Kubernetes Object    **
@@ -105,7 +81,7 @@ func updateServiceAccount(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	updateMetadata("namespace", true, &serviceAccount.ObjectMeta, d)
+	updateMetadata(ctx, "namespace", true, &serviceAccount.ObjectMeta, d)
 
 	client := meta.(*apiClient).clientset
 	namespace := d.Get("namespace").([]map[string]interface{})[0]["name"].(string)

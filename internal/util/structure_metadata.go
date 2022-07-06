@@ -1,9 +1,7 @@
-package octal
+package util
 
 import (
-	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -40,21 +38,10 @@ func flattenMetadata(component string, objectMeta *metav1.ObjectMeta) []map[stri
 
 // This applied the updates provided by the Terraform resource to the base Namespace Object
 // Adds the labels and annotations defined by the Terraform resource.
-func updateMetadata(ctx context.Context, componentName string, namespaced bool, metaData *metav1.ObjectMeta, d *schema.ResourceData) {
+func updateMetadata(component string, namespaced bool, metaData *metav1.ObjectMeta, d *schema.ResourceData) {
 
-	componentConfig := map[string]interface{}{
-		"namespace":   d.Get("name"),
-		"labels":      map[string]interface{}{},
-		"annotations": map[string]interface{}{},
-	}
-
-	// Get the component's configuration from the resource block.
-	component, exists := d.GetOk(componentName)
-	if exists {
-		if component != nil && len(component.([]interface{})) > 0 {
-			componentConfig = component.([]interface{})[0].(map[string]interface{})
-		}
-	}
+	// Get the components configuration from the resource block.
+	componentConfig := d.Get(component).([]interface{})[0].(map[string]interface{})
 
 	/*******************************\
 	** MetaData Object Namespace   **
@@ -62,12 +49,7 @@ func updateMetadata(ctx context.Context, componentName string, namespaced bool, 
 
 	// Set the namespace of the component, if the component is a namespaced resource
 	if namespaced {
-		namespaceName, namespaceNameExists := d.GetOk("name")
-		if !namespaceNameExists {
-			tflog.Info(ctx, "[INFO?] The key 'name' couldn't be found?")
-		}
-		metaData.SetNamespace(namespaceName.(string))
-
+		metaData.SetNamespace(componentConfig["namespace"].(string))
 	}
 
 	/*******************************\
@@ -77,15 +59,15 @@ func updateMetadata(ctx context.Context, componentName string, namespaced bool, 
 	// Get the name specified in the resource block.
 	// This will be combined with the component type to produce the component name.
 	resourceName := d.Get("name").(string)
-	var componentFullName string
-	if componentName == "namespace" {
-		componentFullName = resourceName
+	var componentName string
+	if component == "namespace" {
+		componentName = resourceName
 	} else {
-		componentFullName = fmt.Sprintf("%s-%s", resourceName, componentName)
+		componentName = fmt.Sprintf("%s-%s", resourceName, component)
 	}
 
 	// Set the name of the component
-	metaData.SetName(componentFullName)
+	metaData.SetName(componentName)
 
 	/*******************************\
 	** MetaData Object Labels      **
@@ -108,8 +90,8 @@ func updateMetadata(ctx context.Context, componentName string, namespaced bool, 
 	componentLabels["project-octal.io/cert-manager-schema"] = d.Id()
 	componentLabels["app.kubernetes.io/instance"] = d.Id()
 	componentLabels["app.kubernetes.io/version"] = d.Get("version").(string)
-	componentLabels["app.kubernetes.io/name"] = componentFullName
-	componentLabels["app.kubernetes.io/component"] = componentName
+	componentLabels["app.kubernetes.io/name"] = componentName
+	componentLabels["app.kubernetes.io/component"] = component
 	componentLabels["app.kubernetes.io/part-of"] = resourceName
 	componentLabels["app.kubernetes.io/created-by"] = "terraform"
 	componentLabels["app.kubernetes.io/managed-by"] = "terraform"

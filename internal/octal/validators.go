@@ -129,7 +129,7 @@ func validatePortNumOrName(value interface{}, key string) (ws []string, es []err
 		return validatePortNum(value, key)
 
 	default:
-		es = append(es, fmt.Errorf("%s must be defined of type string or int on the octal-schema", key))
+		es = append(es, fmt.Errorf("%s must be defined of type string or int on the schema", key))
 		return
 	}
 }

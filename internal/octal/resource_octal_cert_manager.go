@@ -2,13 +2,19 @@ package octal
 
 import (
 	"context"
-	octal_schema "github.com/dylanturn/terraform-provider-octal/internal/octal-schema"
-	cert_manager_schema "github.com/dylanturn/terraform-provider-octal/internal/octal-schema/cert-manager-schema"
+	"embed"
+	cert_manager "github.com/dylanturn/terraform-provider-octal/internal/octal/resources/cert-manager"
+	"github.com/dylanturn/terraform-provider-octal/internal/octal/resources/cert-manager/cainjector"
+	octal_schema "github.com/dylanturn/terraform-provider-octal/internal/schema"
+	cert_manager_schema "github.com/dylanturn/terraform-provider-octal/internal/schema/cert-manager-schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"time"
 )
+
+//go:embed resources/cert-manager/cainjector/**
+var certManagerCainjectorManifests embed.FS
 
 func resourceOctalCertManager() *schema.Resource {
 	return &schema.Resource{
@@ -21,7 +27,7 @@ func resourceOctalCertManager() *schema.Resource {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Optional:     true,
-				Default:      "cert-manager-schema",
+				Default:      "cert-manager",
 				Description:  "A name that will be given to the deployment",
 				ValidateFunc: validateName,
 			},
@@ -73,33 +79,18 @@ func resourceOctalCertManager() *schema.Resource {
 	}
 }
 
-type certManagerManifests struct {
-	namespace                string
-	controller               deploymentManifests
-	cainjector               deploymentManifests
-	webhook                  deploymentManifests
-	customResourceDefinition []string
-}
-type deploymentManifests struct {
-	deployment          string
-	service             string
-	serviceAccount      string
-	role                string
-	roleBinding         string
-	clusterRoles        []string
-	clusterRoleBindings []string
-}
-
 func resourceOctalCertManagerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags = diag.Diagnostics{}
 
 	d.SetId(resource.UniqueId())
 
-	namespaceManifest := "resources/cert-manager-schema/namespace.yml"
-	serviceAccountManifest := "resources/cert-manager-schema/controller/service-account.yml"
+	//namespaceManifest := "resources/cert-manager-schema/namespace.yml"
 
-	createNamespace(ctx, meta, d, namespaceManifest)
-	createServiceAccount(ctx, meta, d, serviceAccountManifest)
+	createNamespace(ctx, meta, d, cert_manager.GetDefaultNamespace(ctx))
+
+	CreateDeployment(ctx, meta, d, "webhook", *cainjector.GetDefaultDeployment(ctx))
+	CreateDeployment(ctx, meta, d, "cainjector", *cainjector.GetDefaultDeployment(ctx))
+	CreateDeployment(ctx, meta, d, "controller", *cainjector.GetDefaultDeployment(ctx))
 
 	resourceOctalCertManagerRead(ctx, d, meta)
 	return diags
