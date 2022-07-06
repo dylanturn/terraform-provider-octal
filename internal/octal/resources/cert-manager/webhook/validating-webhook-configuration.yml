@@ -1,0 +1,53 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: cert-manager-schema-webhook
+  labels:
+    app.kubernetes.io/instance: ""
+    app.kubernetes.io/version: ""
+    app.kubernetes.io/name: cert-manager-schema-webhook
+    app.kubernetes.io/component: webhook
+    app.kubernetes.io/part-of: cert-manager-schema
+    app.kubernetes.io/created-by: terraform
+    app.kubernetes.io/managed-by: terraform
+  annotations:
+    # TODO: This needs to be customized
+    cert-manager.io/inject-ca-from-secret: cert-manager-schema/cert-manager-schema-webhook-ca
+webhooks:
+  - admissionReviewVersions:
+      - v1
+      - v1beta1
+    clientConfig:
+      service:
+        name: cert-manager-schema-webhook
+        namespace: cert-manager-schema
+        path: /mutate
+        port: 443
+    failurePolicy: Fail
+    matchPolicy: Exact
+    name: webhook.cert-manager-schema.io
+    namespaceSelector:
+      matchExpressions:
+        - key: cert-manager-schema.io/disable-validation
+          operator: NotIn
+          values:
+            - "true"
+        - key: name
+          operator: NotIn
+          values:
+            - cert-manager-schema
+    objectSelector: {}
+    rules:
+      - apiGroups:
+          - cert-manager-schema.io
+          - acme.cert-manager-schema.io
+        apiVersions:
+          - v1alpha2
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - '*/*'
+        scope: '*'
+    sideEffects: None
+    timeoutSeconds: 30

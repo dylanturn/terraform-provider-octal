@@ -24,6 +24,10 @@ func readFile(filePath string) []byte {
 	return content
 }
 
+func DecodeManifest(manifest []byte) *k8Yaml.YAMLOrJSONDecoder {
+	return k8Yaml.NewYAMLOrJSONDecoder(bytes.NewReader(manifest), 1000)
+}
+
 func LoadManifest(manifestPath string) *k8Yaml.YAMLOrJSONDecoder {
 	return k8Yaml.NewYAMLOrJSONDecoder(bytes.NewReader(readFile(manifestPath)), 1000)
 }

@@ -21,7 +21,7 @@ func init() {
 
 	// Customize the content of descriptions when output. For example you can add defaults on
 	// to the exported descriptions if present.
-	// octal-schema.SchemaDescriptionBuilder = func(s *octal-schema.Schema) string {
+	// schema.SchemaDescriptionBuilder = func(s *schema.Schema) string {
 	// 	desc := s.Description
 	// 	if s.Default != nil {
 	// 		desc += fmt.Sprintf(" Defaults to `%v`.", s.Default)
@@ -33,9 +33,6 @@ func init() {
 func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
-			DataSourcesMap: map[string]*schema.Resource{
-				"scaffolding_data_source": dataSourceScaffolding(),
-			},
 			ResourcesMap: map[string]*schema.Resource{
 				"octal_cert_manager": resourceOctalCertManager(),
 			},

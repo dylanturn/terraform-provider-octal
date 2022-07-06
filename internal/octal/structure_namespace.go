@@ -2,7 +2,6 @@ package octal
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -17,43 +16,26 @@ func loadNamespaceManifest(manifestPath string) (*v1.Namespace, error) {
 	return namespace, err
 }
 
-func getNamespace(ctx context.Context, d *schema.ResourceData, meta interface{}) (*v1.Namespace, error) {
-	client := meta.(*apiClient).clientset
-	namespaces, err := client.CoreV1().Namespaces().List(ctx, octalListOptions(d.Id()))
-	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Failed to get objects! %s", err.Error()))
-		return nil, err
-	}
-	if len(namespaces.Items) > 1 {
-		return nil, errors.New(fmt.Sprintf("Found more than one object with the same id! Objects Found: %s", len(namespaces.Items)))
-	}
-	if len(namespaces.Items) < 1 {
-		return nil, errors.New(fmt.Sprintf("Couldn't find object with the id! Objects Found: %s", len(namespaces.Items)))
-	}
-
-	updateMetadata("namespace", false, &namespaces.Items[0].ObjectMeta, d)
-
-	return &namespaces.Items[0], nil
-}
-
-func createNamespace(ctx context.Context, meta interface{}, d *schema.ResourceData, path string) diag.Diagnostics {
+func createNamespace(ctx context.Context, meta interface{}, d *schema.ResourceData, namespace *v1.Namespace) diag.Diagnostics {
 	var diags diag.Diagnostics
+
+	nsObjMfst := namespace
 
 	/*******************************\
 	** Load Manifest Template      **
 	\*******************************/
 	// This loads the namespace from the manifest template into a v1.Namespace object
-	nsObjMfst, nsObjMfstErr := loadNamespaceManifest(path)
+	/*nsObjMfst, nsObjMfstErr := loadNamespaceManifest(path)
 	if nsObjMfstErr != nil {
 		tflog.Error(ctx, nsObjMfstErr.Error())
 		return diags
-	}
+	}*/
 
 	/*******************************\
 	** Update Manifest MetaData    **
 	\*******************************/
 	// This applied the updates provided by the Terraform resource to the base Namespace Object
-	updateMetadata("namespace", false, &nsObjMfst.ObjectMeta, d)
+	updateMetadata(ctx, "namespace", false, &nsObjMfst.ObjectMeta, d)
 
 	/*******************************\
 	** Create Kubernetes Object    **
@@ -99,7 +81,7 @@ func updateNamespace(ctx context.Context, d *schema.ResourceData, meta interface
 		return diags
 	}
 
-	updateMetadata("namespace", false, &namespace.ObjectMeta, d)
+	updateMetadata(ctx, "namespace", false, &namespace.ObjectMeta, d)
 
 	client := meta.(*apiClient).clientset
 	client.CoreV1().Namespaces().Update(ctx, namespace, metav1.UpdateOptions{})
