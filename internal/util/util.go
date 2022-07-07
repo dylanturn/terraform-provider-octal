@@ -1,20 +1,20 @@
 package util
 
 import (
-	"bytes"
 	"io/ioutil"
-	v1 "k8s.io/api/core/v1"
+	"log"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	k8Yaml "k8s.io/apimachinery/pkg/util/yaml"
-	"log"
 )
 
+/*
 func ALoadManifest(manifestPath string) (*v1.ServiceAccount, error) {
 	serviceAccount := &v1.ServiceAccount{}
 	err := LoadManifest(manifestPath).Decode(&serviceAccount)
 	return serviceAccount, err
 }
+*/
 
 func readFile(filePath string) []byte {
 	content, err := ioutil.ReadFile(filePath)
@@ -22,14 +22,6 @@ func readFile(filePath string) []byte {
 		log.Fatal(err)
 	}
 	return content
-}
-
-func DecodeManifest(manifest []byte) *k8Yaml.YAMLOrJSONDecoder {
-	return k8Yaml.NewYAMLOrJSONDecoder(bytes.NewReader(manifest), 1000)
-}
-
-func LoadManifest(manifestPath string) *k8Yaml.YAMLOrJSONDecoder {
-	return k8Yaml.NewYAMLOrJSONDecoder(bytes.NewReader(readFile(manifestPath)), 1000)
 }
 
 func OctalListOptions(resourceId string) metav1.ListOptions {

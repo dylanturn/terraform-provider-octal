@@ -261,7 +261,7 @@ Read-Only:
 - `cluster_role_bindings` (List of Object) (see [below for nested schema](#nestedatt--webhook--cluster_role_bindings))
 - `cluster_roles` (List of Object) (see [below for nested schema](#nestedatt--webhook--cluster_roles))
 - `component` (String) The name of this deployment
-- `mutating-webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook--mutating-webhook))
+- `mutating_webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook--mutating_webhook))
 - `name` (String) The name of this deployment
 - `resource_version` (String) An opaque value that represents the internal version of this component that can be used by clients to determine when it has changed
 - `role_bindings` (List of Object) (see [below for nested schema](#nestedatt--webhook--role_bindings))
@@ -269,7 +269,7 @@ Read-Only:
 - `service` (List of Object) (see [below for nested schema](#nestedatt--webhook--service))
 - `service_account` (List of Object) (see [below for nested schema](#nestedatt--webhook--service_account))
 - `uid` (String) The unique in time and space value for component
-- `validating-webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook--validating-webhook))
+- `validating_webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook--validating_webhook))
 
 <a id="nestedatt--webhook--cluster_role_bindings"></a>
 ### Nested Schema for `webhook.cluster_role_bindings`
@@ -297,8 +297,8 @@ Read-Only:
 - `uid` (String)
 
 
-<a id="nestedatt--webhook--mutating-webhook"></a>
-### Nested Schema for `webhook.mutating-webhook`
+<a id="nestedatt--webhook--mutating_webhook"></a>
+### Nested Schema for `webhook.mutating_webhook`
 
 Read-Only:
 
@@ -361,8 +361,8 @@ Read-Only:
 - `uid` (String)
 
 
-<a id="nestedatt--webhook--validating-webhook"></a>
-### Nested Schema for `webhook.validating-webhook`
+<a id="nestedatt--webhook--validating_webhook"></a>
+### Nested Schema for `webhook.validating_webhook`
 
 Read-Only:
 

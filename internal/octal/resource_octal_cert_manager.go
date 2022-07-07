@@ -3,14 +3,18 @@ package octal
 import (
 	"context"
 	"embed"
-	cert_manager "github.com/dylanturn/terraform-provider-octal/internal/octal/resources/cert-manager"
-	"github.com/dylanturn/terraform-provider-octal/internal/octal/resources/cert-manager/cainjector"
+	"time"
+
+	cainjector "github.com/dylanturn/terraform-provider-octal/internal/resources/cert-manager/cainjector"
+	controller "github.com/dylanturn/terraform-provider-octal/internal/resources/cert-manager/controller"
+	webhook "github.com/dylanturn/terraform-provider-octal/internal/resources/cert-manager/webhook"
+	namespace "github.com/dylanturn/terraform-provider-octal/internal/resources/namespace"
 	octal_schema "github.com/dylanturn/terraform-provider-octal/internal/schema"
 	cert_manager_schema "github.com/dylanturn/terraform-provider-octal/internal/schema/cert-manager-schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"time"
+	Appsv1 "k8s.io/api/apps/v1"
 )
 
 //go:embed resources/cert-manager/cainjector/**
@@ -84,21 +88,28 @@ func resourceOctalCertManagerCreate(ctx context.Context, d *schema.ResourceData,
 
 	d.SetId(resource.UniqueId())
 
-	//namespaceManifest := "resources/cert-manager-schema/namespace.yml"
-
-	createNamespace(ctx, meta, d, cert_manager.GetDefaultNamespace(ctx))
-
-	CreateDeployment(ctx, meta, d, "webhook", *cainjector.GetDefaultDeployment(ctx))
-	CreateDeployment(ctx, meta, d, "cainjector", *cainjector.GetDefaultDeployment(ctx))
-	CreateDeployment(ctx, meta, d, "controller", *cainjector.GetDefaultDeployment(ctx))
+	createNamespace(ctx, meta, d, namespace.GetDefaultNamespace(ctx))
+	createDeployments(ctx, meta, d, map[string][]Appsv1.Deployment{
+		"webhook":    *webhook.GetComponent().GetDefaultDeployments(ctx, d, meta),
+		"cainjector": *cainjector.GetComponent().GetDefaultDeployments(ctx, d, meta),
+		"controller": *controller.GetComponent().GetDefaultDeployments(ctx, d, meta),
+	})
 
 	resourceOctalCertManagerRead(ctx, d, meta)
+
 	return diags
 }
 
 func resourceOctalCertManagerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+
 	readNamespace(ctx, d, meta)
+	readDeployments(ctx, d, meta, []string{
+		"webhook",
+		"cainjector",
+		"controller",
+	})
+
 	readServiceAccount(ctx, d, meta)
 
 	return diags
@@ -106,16 +117,30 @@ func resourceOctalCertManagerRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceOctalCertManagerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+
 	updateNamespace(ctx, d, meta)
+	updateDeployments(ctx, d, meta, []string{
+		"webhook",
+		"cainjector",
+		"controller",
+	})
+
 	updateServiceAccount(ctx, d, meta)
 
 	resourceOctalCertManagerRead(ctx, d, meta)
+
 	return diags
 }
 
 func resourceOctalCertManagerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+
 	deleteNamespace(ctx, d, meta)
+	deleteDeployments(ctx, d, meta, []string{
+		"webhook",
+		"cainjector",
+		"controller",
+	})
 	deleteServiceAccount(ctx, d, meta)
 
 	return diags

@@ -3,6 +3,7 @@ package octal
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -10,7 +11,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func CreateDeployment(ctx context.Context, meta interface{}, d *schema.ResourceData, component string, defaultDeployment Appsv1.Deployment) diag.Diagnostics {
+func createDeployments(ctx context.Context, meta interface{}, d *schema.ResourceData, deployments map[string][]Appsv1.Deployment) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	for component, deploymentList := range deployments {
+		for _, deployment := range deploymentList {
+			//deployment.GetObjectKind()
+			createKubernetesObject(ctx, meta, d, component, "", &deployment, metav1.CreateOptions{})
+			//createDeployment(ctx, meta, d, component, deployment)
+		}
+	}
+
+	return diags
+}
+
+func createDeployment(ctx context.Context, meta interface{}, d *schema.ResourceData, component string, defaultDeployment Appsv1.Deployment) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	namespace := d.Get("name").(string)
@@ -39,16 +54,24 @@ func CreateDeployment(ctx context.Context, meta interface{}, d *schema.ResourceD
 	** Read New Object Back        **
 	\*******************************/
 	// Here we appear to read back the namespace state to make sure it's consistent?
-	ReadDeployment(ctx, d, meta, component)
+	readDeployment(ctx, d, meta, component)
 
 	return diags
 }
 
-func ReadDeployment(ctx context.Context, d *schema.ResourceData, meta interface{}, component string) diag.Diagnostics {
+func readDeployments(ctx context.Context, d *schema.ResourceData, meta interface{}, components []string) diag.Diagnostics {
+	var diags = diag.Diagnostics{}
+
+	for _, component := range components {
+		readDeployment(ctx, d, meta, component)
+	}
+
+	return diags
+}
+func readDeployment(ctx context.Context, d *schema.ResourceData, meta interface{}, component string) diag.Diagnostics {
 	var diags = diag.Diagnostics{}
 
 	object, nsErr := getDeployment(ctx, d, meta)
-
 	if nsErr != nil {
 		return diags
 	}
@@ -60,7 +83,16 @@ func ReadDeployment(ctx context.Context, d *schema.ResourceData, meta interface{
 	return diags
 }
 
-func UpdateDeployment(ctx context.Context, d *schema.ResourceData, meta interface{}, component string) diag.Diagnostics {
+func updateDeployments(ctx context.Context, d *schema.ResourceData, meta interface{}, components []string) diag.Diagnostics {
+	var diags = diag.Diagnostics{}
+
+	for _, component := range components {
+		updateDeployment(ctx, d, meta, component)
+	}
+
+	return diags
+}
+func updateDeployment(ctx context.Context, d *schema.ResourceData, meta interface{}, component string) diag.Diagnostics {
 	var diags = diag.Diagnostics{}
 
 	namespace := d.Get("name").(string)
@@ -81,10 +113,20 @@ func UpdateDeployment(ctx context.Context, d *schema.ResourceData, meta interfac
 	return diags
 }
 
-func DeleteDeployment(ctx context.Context, d *schema.ResourceData, meta interface{}, component string) diag.Diagnostics {
+func deleteDeployments(ctx context.Context, d *schema.ResourceData, meta interface{}, components []string) diag.Diagnostics {
 	var diags = diag.Diagnostics{}
 
-	namespace := d.Get("namespace").([]interface{})[0].(map[string]interface{})["name"].(string)
+	for _, component := range components {
+		deleteDeployment(ctx, d, meta, component)
+	}
+
+	return diags
+}
+func deleteDeployment(ctx context.Context, d *schema.ResourceData, meta interface{}, component string) diag.Diagnostics {
+	var diags = diag.Diagnostics{}
+
+	namespace := d.Get("name").(string)
+	//namespace := d.Get("namespace").([]interface{})[0].(map[string]interface{})["name"].(string)
 
 	object, err := getDeployment(ctx, d, meta)
 	if err != nil {

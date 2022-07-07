@@ -2,17 +2,16 @@ package cainjector
 
 import (
 	"embed"
+
+	resource_component "github.com/dylanturn/terraform-provider-octal/internal/component"
 	"github.com/dylanturn/terraform-provider-octal/internal/util"
-	Appsv1 "k8s.io/api/apps/v1"
-	Corev1 "k8s.io/api/core/v1"
-	Rbacv1 "k8s.io/api/rbac/v1"
 )
 
 //go:embed deployment.yml
-var deployment []byte
+var deployment embed.FS
 
 //go:embed service-account.yml
-var serviceAccount []byte
+var serviceAccounts embed.FS
 
 //go:embed roles/*
 var roles embed.FS
@@ -26,18 +25,22 @@ var clusterRoles embed.FS
 //go:embed cluster-role-bindings/*
 var clusterRoleBindings embed.FS
 
-type Cainjector struct {
-	Deployment          Appsv1.Deployment
-	Service             Corev1.Service
-	ServiceAccount      Corev1.ServiceAccount
-	Role                []Rbacv1.Role
-	RoleBinding         []Rbacv1.RoleBinding
-	ClusterRoles        []Rbacv1.ClusterRole
-	ClusterRoleBindings []Rbacv1.ClusterRoleBinding
-}
+type Component resource_component.Component
+type ResourceComponent resource_component.ResourceComponent
 
-func (Cainjector) GetDefaultDeployment() (Appsv1.Deployment, error) {
-	deploymentObj := &Appsv1.Deployment{}
-	err := util.DecodeManifest(deployment).Decode(&deploymentObj)
-	return *deploymentObj, err
+func GetComponent() resource_component.Component {
+
+	cainjector := resource_component.ResourceComponent{
+		Name:                              "cainjector",
+		DeploymentManifests:               util.ReadEmbeddedFiles(deployment),
+		ServiceAccountManifests:           util.ReadEmbeddedFiles(serviceAccounts),
+		ServiceManifests:                  []string{},
+		RoleManifests:                     util.ReadEmbeddedFiles(roles),
+		RoleBindingManifests:              util.ReadEmbeddedFiles(roleBindings),
+		ClusterRolesManifests:             util.ReadEmbeddedFiles(clusterRoles),
+		ClusterRoleBindingsManifests:      util.ReadEmbeddedFiles(clusterRoleBindings),
+		CustomResourceDefinitionManifests: nil,
+	}
+
+	return cainjector
 }
