@@ -8,14 +8,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-/*
-func ALoadManifest(manifestPath string) (*v1.ServiceAccount, error) {
-	serviceAccount := &v1.ServiceAccount{}
-	err := LoadManifest(manifestPath).Decode(&serviceAccount)
-	return serviceAccount, err
-}
-*/
-
 func readFile(filePath string) []byte {
 	content, err := ioutil.ReadFile(filePath)
 	if err != nil {

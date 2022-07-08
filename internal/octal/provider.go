@@ -3,9 +3,12 @@ package octal
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/dylanturn/terraform-provider-octal/internal/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"k8s.io/client-go/kubernetes"
@@ -13,6 +16,8 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 func init() {
@@ -54,14 +59,31 @@ type apiClient struct {
 }
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
+
 	return func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		// Setup a User-Agent for your API client (replace the octal name for yours):
 		// userAgent := p.UserAgent("terraform-octal-scaffolding", version)
 		// TODO: myClient.UserAgent = userAgent
 
-		clientApi := apiClient{
-			config:    getKubeConfig(),
-			clientset: GetKubeClient(),
+		cfg, err := tryLoadingConfigFile()
+		if err != nil {
+			fmt.Printf("Get in cluster config: %s", err)
+		}
+
+		mapper, err := apiutil.NewDynamicRESTMapper(cfg, apiutil.WithLazyDiscovery)
+		if err != nil {
+			fmt.Printf("Failed to create the dynamic rest mapper: %s", err)
+		}
+
+		c, err := client.New(cfg, client.Options{
+			Mapper: mapper,
+		})
+		if err != nil {
+			fmt.Printf("Failed to configure: %s", err)
+		}
+
+		clientApi := util.ProviderConfig{
+			RuntimeClient: c,
 		}
 
 		return &clientApi, nil
@@ -99,4 +121,28 @@ func GetKubeClient() *kubernetes.Clientset {
 		panic(err.Error())
 	}
 	return clientset
+}
+
+func tryLoadingConfigFile() (*restclient.Config, error) {
+	path := "/Users/dylanturnbull/.kube/config"
+
+	loader := &clientcmd.ClientConfigLoadingRules{
+		ExplicitPath: path,
+	}
+
+	overrides := &clientcmd.ConfigOverrides{}
+	ctxSuffix := "; default context"
+
+	cc := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loader, overrides)
+	cfg, err := cc.ClientConfig()
+	if err != nil {
+		if pathErr, ok := err.(*os.PathError); ok && os.IsNotExist(pathErr.Err) {
+			log.Printf("[INFO] Unable to load config file as it doesn't exist at %q", path)
+			return nil, nil
+		}
+		log.Printf("[WARN] Failed to load config (%s%s): %s", path, ctxSuffix, err)
+	}
+
+	log.Printf("[INFO] Successfully loaded config file (%s%s)", path, ctxSuffix)
+	return cfg, nil
 }

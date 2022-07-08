@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	Appsv1 "k8s.io/api/apps/v1"
 )
 
 func resourceOctalCertManager() *schema.Resource {
@@ -81,11 +80,16 @@ func resourceOctalCertManagerCreate(ctx context.Context, d *schema.ResourceData,
 
 	d.SetId(resource.UniqueId())
 
-	createDeployments(ctx, meta, d, map[string][]Appsv1.Deployment{
-		"webhook":    *webhook.GetComponent().GetDefaultDeployments(ctx, d, meta),
-		"cainjector": *cainjector.GetComponent().GetDefaultDeployments(ctx, d, meta),
-		"controller": *controller.GetComponent().GetDefaultDeployments(ctx, d, meta),
-	})
+	webhook.GetComponent(d).Create(ctx, d, meta)
+	cainjector.GetComponent(d).Create(ctx, d, meta)
+	controller.GetComponent(d).Create(ctx, d, meta)
+
+	// manifests := []string{}
+	// manifests = append(manifests, webhook.GetComponent().GetDefaultDeployments()...)
+	// manifests = append(manifests, cainjector.GetComponent().GetDefaultDeployments()...)
+	// manifests = append(manifests, controller.GetComponent().GetDefaultDeployments()...)
+	// util.ResourceK8sManifestCreate(ctx, d, meta, manifests[0])
+	// createDeployments(ctx, meta, d, manifests)
 
 	resourceOctalCertManagerRead(ctx, d, meta)
 

@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/created-by: terraform
+    app.kubernetes.io/instance: ""
+    app.kubernetes.io/managed-by: terraform
+    app.kubernetes.io/name: cert-manager-schema
+    app.kubernetes.io/part-of: cert-manager-schema
+    app.kubernetes.io/version: ""
+  name: cert-manager-schema
+  namespace: cert-manager-schema
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/instance: ""
+      app.kubernetes.io/name: cert-manager-schema
+      app.kubernetes.io/part-of: cert-manager-schema
+      app.kubernetes.io/version: ""
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9402"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/component: controller
+        app.kubernetes.io/created-by: terraform
+        app.kubernetes.io/instance: ""
+        app.kubernetes.io/managed-by: terraform
+        app.kubernetes.io/name: cert-manager-schema
+        app.kubernetes.io/part-of: cert-manager-schema
+        app.kubernetes.io/version: ""
+      name: cert-manager-schema
+      namespace: project-octal
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - args:
+          - --v=2
+          - --cluster-resource-namespace=$(POD_NAMESPACE)
+          - --leader-election-namespace=kube-system
+          env:
+          - name: POD_NAMESPACE
+            value: cert-manager-schema
+          image: quay.io/jetstack/cert-manager-schema-controller:v1.8.1
+          imagePullPolicy: Always
+          name: cert-manager-schema
+          ports:
+          - containerPort: 9402
+            protocol: TCP
+          resources:
+            requests:
+              cpu: 250m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/run/secrets/kubernetes.io/serviceaccount/
+            mountPropagation: None
+            name: service-token
+            readOnly: true
+        dnsPolicy: ClusterFirst
+        enableServiceLinks: true
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        serviceAccount: cert-manager-schema
+        serviceAccountName: cert-manager-schema
+        shareProcessNamespace: false
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: service-token
+          secret:
+            defaultMode: 420
+            optional: false
+            secretName: cert-manager-schema-token-76jsd

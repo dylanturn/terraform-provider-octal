@@ -2,9 +2,12 @@ package cainjector
 
 import (
 	"embed"
+	"fmt"
+	"reflect"
 
 	resource_component "github.com/dylanturn/terraform-provider-octal/internal/component"
 	"github.com/dylanturn/terraform-provider-octal/internal/util"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 //go:embed deployments/*
@@ -40,10 +43,26 @@ var validatingWebhookConfigurations embed.FS
 type Component resource_component.Component
 type ResourceComponent resource_component.ResourceComponent
 
-func GetComponent() resource_component.Component {
+func GetComponent(d *schema.ResourceData) resource_component.Component {
 
-	cainjector := resource_component.ResourceComponent{
-		Name:                                    "cainjector",
+	type Empty struct{}
+	fmt.Printf("########### %s ##########", reflect.TypeOf(Empty{}).PkgPath())
+
+	componentName := "cainjector"
+	componentConfig := map[string]interface{}{}
+
+	// Get the component's configuration from the resource block.
+	component, exists := d.GetOk(componentName)
+	if exists {
+		if component != nil && len(component.([]interface{})) > 0 {
+			componentConfig = component.([]interface{})[0].(map[string]interface{})
+		}
+	}
+
+	managedComponent := resource_component.ResourceComponent{
+		Name:                                    componentName,
+		Namespace:                               d.Get("namespace").(string),
+		Config:                                  componentConfig,
 		DeploymentManifests:                     util.ReadEmbeddedFiles(deployments),
 		ServiceAccountManifests:                 util.ReadEmbeddedFiles(serviceAccounts),
 		ServiceManifests:                        util.ReadEmbeddedFiles(services),
@@ -56,5 +75,5 @@ func GetComponent() resource_component.Component {
 		ValidatingWebhookConfigurationManifests: util.ReadEmbeddedFiles(validatingWebhookConfigurations),
 	}
 
-	return cainjector
+	return managedComponent
 }
