@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dylanturn/terraform-provider-octal/internal/util"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -14,11 +15,12 @@ import (
 func createDeployments(ctx context.Context, meta interface{}, d *schema.ResourceData, deployments map[string][]Appsv1.Deployment) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	for component, deploymentList := range deployments {
+	for _, deploymentList := range deployments {
 		for _, deployment := range deploymentList {
-			//deployment.GetObjectKind()
-			createKubernetesObject(ctx, meta, d, component, "", &deployment, metav1.CreateOptions{})
+			tflog.Info(ctx, deployment.String())
+			util.ResourceK8sManifestCreate(ctx, d, meta, d.Get("namespace").(string), deployment.String())
 			//createDeployment(ctx, meta, d, component, deployment)
+			tflog.Info(ctx, fmt.Sprintf("%s Created!!", deployment.Kind))
 		}
 	}
 
@@ -28,7 +30,7 @@ func createDeployments(ctx context.Context, meta interface{}, d *schema.Resource
 func createDeployment(ctx context.Context, meta interface{}, d *schema.ResourceData, component string, defaultDeployment Appsv1.Deployment) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	namespace := d.Get("name").(string)
+	namespace := d.Get("namespace").(string)
 
 	/*******************************\
 	** Update Manifest MetaData    **
@@ -43,6 +45,7 @@ func createDeployment(ctx context.Context, meta interface{}, d *schema.ResourceD
 	tflog.Info(ctx, fmt.Sprintf("[INFO] Creating new %s: %#v", component, defaultDeployment.Name))
 	// Get the K8s client
 	client := meta.(*apiClient).clientset
+
 	_, err := client.AppsV1().Deployments(namespace).Create(ctx, &defaultDeployment, metav1.CreateOptions{})
 	if err != nil {
 		tflog.Error(ctx, err.Error())
@@ -95,7 +98,7 @@ func updateDeployments(ctx context.Context, d *schema.ResourceData, meta interfa
 func updateDeployment(ctx context.Context, d *schema.ResourceData, meta interface{}, component string) diag.Diagnostics {
 	var diags = diag.Diagnostics{}
 
-	namespace := d.Get("name").(string)
+	namespace := d.Get("namespace").(string)
 
 	object, err := getDeployment(ctx, d, meta)
 	if err != nil {
@@ -125,8 +128,7 @@ func deleteDeployments(ctx context.Context, d *schema.ResourceData, meta interfa
 func deleteDeployment(ctx context.Context, d *schema.ResourceData, meta interface{}, component string) diag.Diagnostics {
 	var diags = diag.Diagnostics{}
 
-	namespace := d.Get("name").(string)
-	//namespace := d.Get("namespace").([]interface{})[0].(map[string]interface{})["name"].(string)
+	namespace := d.Get("namespace").(string)
 
 	object, err := getDeployment(ctx, d, meta)
 	if err != nil {

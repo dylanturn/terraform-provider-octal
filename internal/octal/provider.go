@@ -3,6 +3,9 @@ package octal
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"k8s.io/client-go/kubernetes"
@@ -10,8 +13,6 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"os"
-	"path/filepath"
 )
 
 func init() {

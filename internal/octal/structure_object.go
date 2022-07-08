@@ -8,49 +8,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	Appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/client-go/rest"
-
+	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type KubeObject interface {
-	metav1.Object
-	runtime.Object
-}
+func createKubernetesObject(ctx context.Context, meta interface{}, d *schema.ResourceData, kind string, namespace string, deployment runtime.Object, opts *v1.CreateOptions) (result runtime.Object, err error) { // (result rest.Result) {
 
-func createKubernetesObjectNew[T KubeObject](ctx context.Context, meta interface{}, d *schema.ResourceData, kind string, namespace string, deployment KubeObject, opts metav1.CreateOptions) (result rest.Result) {
+	tflog.Info(ctx, fmt.Sprintf("The Deployment: %s", "idk"))
+	tflog.Info(ctx, fmt.Sprintf("The namespace: %s", namespace))
+	tflog.Info(ctx, fmt.Sprintf("The kind: %s", deployment.GetObjectKind()))
 
-	tflog.Info(ctx, fmt.Sprintf("The Deployment: %s", deployment.GetName()))
-	tflog.Info(ctx, fmt.Sprintf("The namespace: %s", deployment.GetNamespace()))
-	tflog.Info(ctx, fmt.Sprintf("The kind: %s", deployment.GetObjectKind().GroupVersionKind().Kind))
-
-	/*client := meta.(*apiClient).clientset.RESTClient()
-	result = client.Post().
-		Namespace(deployment.GetNamespace()).
-		Resource(deployment.GetObjectKind().GroupVersionKind().Kind).
-		VersionedParams(&opts, scheme.ParameterCodec).
+	client, clientErr := clientset.NewForConfig(meta.(*apiClient).config)
+	err = client.RESTClient().Post().
+		Namespace(namespace).
+		Resource("deployments").
 		Body(deployment).
-		Do(ctx)
-	return result*/
-	return
-}
+		Do(ctx).Into(result)
 
-func createKubernetesObject(ctx context.Context, meta interface{}, d *schema.ResourceData, kind string, namespace string, deployment KubeObject, opts metav1.CreateOptions) (result rest.Result) {
+	if clientErr != nil {
+		tflog.Error(ctx, fmt.Sprintf("Failed to create Object: %s", err.Error()))
+	}
 
-	tflog.Info(ctx, fmt.Sprintf("The Deployment: %s", deployment.GetName()))
-	tflog.Info(ctx, fmt.Sprintf("The namespace: %s", deployment.GetNamespace()))
-	tflog.Info(ctx, fmt.Sprintf("The kind: %s", deployment.GetObjectKind().GroupVersionKind().Kind))
-
-	/*client := meta.(*apiClient).clientset.RESTClient()
-	result = client.Post().
-		Namespace(deployment.GetNamespace()).
-		Resource(deployment.GetObjectKind().GroupVersionKind().Kind).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(deployment).
-		Do(ctx)
-	return result*/
-	return
+	return result, err
 }
 
 func createObject(ctx context.Context, meta interface{}, d *schema.ResourceData, component string, defaultDeployment Appsv1.Deployment) diag.Diagnostics {
