@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -15,7 +14,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 	goyaml "gopkg.in/yaml.v2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	api_meta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8s_schema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/kubectl/pkg/polymorphichelpers"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -25,25 +26,11 @@ type ProviderConfig struct {
 	RuntimeClient client.Client
 }
 
-func ResourceK8sManifestCreate(ctx context.Context, d *schema.ResourceData, meta interface{}, component ResourceComponent, content string) error {
-	object, err := contentToObject(content)
-	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return err
-	}
-
-	tflog.Info(ctx, fmt.Sprintf("############## %s ###########", object.GetSelfLink()))
-
-	objectNamespace := object.GetNamespace()
-
-	if objectNamespace == "" {
-		object.SetNamespace("default")
-	}
+func ResourceK8sManifestCreate(ctx context.Context, d *schema.ResourceData, meta interface{}, object *unstructured.Unstructured) error {
 
 	client := meta.(*ProviderConfig).RuntimeClient
-
-	log.Printf("[INFO] Creating new manifest: %#v", object)
-	err = client.Create(ctx, object)
+	tflog.Info(ctx, fmt.Sprintf("Creating new manifest: %#v", object))
+	err := client.Create(ctx, object)
 	if err != nil {
 		tflog.Error(ctx, err.Error())
 		return err
@@ -54,8 +41,8 @@ func ResourceK8sManifestCreate(ctx context.Context, d *schema.ResourceData, meta
 		tflog.Error(ctx, err.Error())
 		return err
 	}
-	//return diag.Diagnostics{}
-	return resourceK8sManifestRead(ctx, d, meta, componentName)
+
+	return nil
 }
 
 func waitForReadyStatus(ctx context.Context, d *schema.ResourceData, c client.Client, object *unstructured.Unstructured, timeout time.Duration) error {
@@ -71,14 +58,14 @@ func waitForReadyStatus(ctx context.Context, d *schema.ResourceData, c client.Cl
 		Refresh: func() (interface{}, string, error) {
 			err := c.Get(ctx, objectKey, object)
 			if err != nil {
-				log.Printf("[DEBUG] Received error: %#v", err)
+				tflog.Error(ctx, fmt.Sprintf("Received error: %#v", err))
 				return nil, "error", err
 			}
 
-			log.Printf("[DEBUG] Received object: %#v", object)
+			tflog.Debug(ctx, fmt.Sprintf("Received object: %#v", object))
 
 			if s, ok := object.Object["status"]; ok {
-				log.Printf("[DEBUG] Object has status: %#v", s)
+				tflog.Debug(ctx, fmt.Sprintf("Object has status: %#v", s))
 
 				if statusViewer, err := polymorphichelpers.StatusViewerFor(object.GetObjectKind().GroupVersionKind().GroupKind()); err == nil {
 					_, ready, err := statusViewer.Status(object, 0)
@@ -90,12 +77,12 @@ func waitForReadyStatus(ctx context.Context, d *schema.ResourceData, c client.Cl
 					}
 					return object, "pending", nil
 				}
-				log.Printf("[DEBUG] Object has no rollout status viewer")
+				tflog.Debug(ctx, fmt.Sprintf("Object has no rollout status viewer"))
 
 				var status status
 				err = mapstructure.Decode(s, &status)
 				if err != nil {
-					log.Printf("[DEBUG] Received error on decode: %#v", err)
+					tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Received error on decode: %#v", err))
 					return nil, "error", err
 				}
 
@@ -121,17 +108,17 @@ func waitForReadyStatus(ctx context.Context, d *schema.ResourceData, c client.Cl
 					if object.GetAPIVersion() == "v1" && object.GetKind() == "Service" {
 						specInterface, ok := object.Object["spec"]
 						if !ok {
-							log.Printf("[DEBUG] Received error on decode: %#v", err)
+							tflog.Debug(ctx, fmt.Sprintf("Received error on decode: %#v", err))
 							return nil, "error", err
 						}
 						spec, ok := specInterface.(map[string]interface{})
 						if !ok {
-							log.Printf("[DEBUG] Received error on decode: %#v", err)
+							tflog.Debug(ctx, fmt.Sprintf("Received error on decode: %#v", err))
 							return nil, "error", err
 						}
 						serviceType, ok := spec["type"]
 						if !ok {
-							log.Printf("[DEBUG] Received error on decode: %#v", err)
+							tflog.Debug(ctx, fmt.Sprintf("Received error on decode: %#v", err))
 							return nil, "error", err
 						}
 						checkLoadBalancer = serviceType == "LoadBalancer"
@@ -161,48 +148,50 @@ func waitForReadyStatus(ctx context.Context, d *schema.ResourceData, c client.Cl
 	return nil
 }
 
-func resourceK8sManifestRead(ctx context.Context, d *schema.ResourceData, meta interface{}, componentName string) error {
+func ResourceK8sManifestRead(ctx context.Context, d *schema.ResourceData, meta interface{}, componentPart map[string]interface{}) error {
 
-	d.Get(componentName)
+	name := componentPart["name"].(string)
+	namespace := d.Get("namespace").(string)
+	groupVersionKind := k8s_schema.GroupVersionKind{
+		Group:   componentPart["group"].(string),
+		Version: componentPart["version"].(string),
+		Kind:    componentPart["kind"].(string),
+	}
 
 	object := &unstructured.Unstructured{}
-	object.SetGroupVersionKind(groupVersion.WithKind(kind))
+	object.SetGroupVersionKind(groupVersionKind)
 	object.SetNamespace(namespace)
 	object.SetName(name)
 
-	objectKey, err := client.ObjectKeyFromObject(object)
-	if err != nil {
-		log.Printf("[DEBUG] Received error: %#v", err)
-		return err
-	}
+	objectKey := client.ObjectKeyFromObject(object)
 
 	client := meta.(*ProviderConfig).RuntimeClient
 
-	log.Printf("[INFO] Reading object %s", name)
-	err = client.Get(context.Background(), objectKey, object)
+	tflog.Info(ctx, fmt.Sprintf("Reading object %s", name))
+	err := client.Get(context.Background(), objectKey, object)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			log.Printf("[INFO] Object missing: %#v", object)
+			tflog.Error(ctx, fmt.Sprintf("Object missing: %#v", object))
 			d.SetId("")
 			return nil
 		}
-		if meta.IsNoMatchError(err) {
-			log.Printf("[INFO] Object kind missing: %#v", object)
+		if api_meta.IsNoMatchError(err) {
+			tflog.Error(ctx, fmt.Sprintf("Object kind missing: %#v", object))
 			d.SetId("")
 			return nil
 		}
 
-		log.Printf("[DEBUG] Received error: %#v", err)
+		tflog.Error(ctx, fmt.Sprintf("Received error: %#v", err))
 		return err
 	}
-	log.Printf("[INFO] Received object: %#v", object)
+	tflog.Debug(ctx, fmt.Sprintf("Received object: %#v", object))
 
 	// TODO: save metadata in terraform state
 
 	return nil
 }
 
-func contentToObject(content string) (*unstructured.Unstructured, error) {
+func ContentToObject(content string) (*unstructured.Unstructured, error) {
 	decoder := yaml.NewYAMLOrJSONDecoder(strings.NewReader(content), 4096)
 
 	var object *unstructured.Unstructured
@@ -219,7 +208,7 @@ func contentToObject(content string) (*unstructured.Unstructured, error) {
 	}
 }
 
-func excludeIgnoreFields(ignoreFieldsRaw interface{}, content string) (string, error) {
+func excludeIgnoreFields(ctx context.Context, ignoreFieldsRaw interface{}, content string) (string, error) {
 	var contentModified []byte
 	var ignoreFields []string
 
@@ -230,20 +219,20 @@ func excludeIgnoreFields(ignoreFieldsRaw interface{}, content string) (string, e
 	for _, i := range ignoreFields {
 		query, err := gojq.Parse(fmt.Sprintf("del(%s)", i))
 		if err != nil {
-			log.Printf("[DEBUG] Received error: %#v", err)
+			tflog.Error(ctx, fmt.Sprintf("Received error: %#v", err))
 			return "", err
 		}
 
 		if len(contentModified) > 0 {
 			d, err := yaml2GoData(string(contentModified))
 			if err != nil {
-				log.Printf("[DEBUG] Received error: %#v", err)
+				tflog.Error(ctx, fmt.Sprintf("Received error: %#v", err))
 				return "", err
 			}
 
 			v, _ := query.Run(d).Next()
 			if err, ok := v.(error); ok {
-				log.Printf("[DEBUG] Received error: %#v", err)
+				tflog.Error(ctx, fmt.Sprintf("Received error: %#v", err))
 				return "", err
 			}
 
@@ -252,13 +241,13 @@ func excludeIgnoreFields(ignoreFieldsRaw interface{}, content string) (string, e
 		} else {
 			d, err := yaml2GoData(content)
 			if err != nil {
-				log.Printf("[DEBUG] Received error: %#v", err)
+				tflog.Debug(ctx, fmt.Sprintf("Received error: %#v", err))
 				return "", err
 			}
 
 			v, _ := query.Run(d).Next()
 			if err, ok := v.(error); ok {
-				log.Printf("[DEBUG] !!!Received error: %#v", err)
+				tflog.Error(ctx, fmt.Sprintf("!!!Received error: %#v", err))
 				return "", err
 			}
 
@@ -266,7 +255,7 @@ func excludeIgnoreFields(ignoreFieldsRaw interface{}, content string) (string, e
 		}
 
 		if err != nil {
-			log.Printf("[DEBUG] Received error from jq: %#v", err)
+			tflog.Error(ctx, fmt.Sprintf("Received error from jq: %#v", err))
 		}
 	}
 	return string(contentModified), nil

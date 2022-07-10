@@ -7,7 +7,8 @@ import (
 
 func ControllerSchema() *schema.Resource {
 
-	componentSpec := *octal_schema.ComponentSchema()
+	//componentSpec := *octal_schema.ComponentSchema()
+	componentSpec := *octal_schema.NewComponentSchema()
 
 	return &schema.Resource{
 		Schema: componentSpec,

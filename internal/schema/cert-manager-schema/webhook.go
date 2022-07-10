@@ -7,16 +7,17 @@ import (
 
 func WebhoookSchema() *schema.Resource {
 
-	webhookSpec := *octal_schema.ComponentSchema()
+	//componentSpec := *octal_schema.ComponentSchema()
+	componentSpec := *octal_schema.NewComponentSchema()
 
-	webhookSpec["mutating_webhook"] = &schema.Schema{
+	componentSpec["mutating_webhook"] = &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: false,
 		Computed: true,
 		Elem:     octal_schema.MutatingWebhookConfiguration(),
 	}
 
-	webhookSpec["validating_webhook"] = &schema.Schema{
+	componentSpec["validating_webhook"] = &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: false,
 		Computed: true,
@@ -24,6 +25,6 @@ func WebhoookSchema() *schema.Resource {
 	}
 
 	return &schema.Resource{
-		Schema: webhookSpec,
+		Schema: componentSpec,
 	}
 }

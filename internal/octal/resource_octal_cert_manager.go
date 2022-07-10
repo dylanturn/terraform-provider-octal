@@ -2,6 +2,7 @@ package octal
 
 import (
 	"context"
+	"log"
 	"time"
 
 	cainjector "github.com/dylanturn/terraform-provider-octal/internal/resources/cert-manager/cainjector"
@@ -80,16 +81,20 @@ func resourceOctalCertManagerCreate(ctx context.Context, d *schema.ResourceData,
 
 	d.SetId(resource.UniqueId())
 
-	webhook.GetComponent(d).Create(ctx, d, meta)
-	cainjector.GetComponent(d).Create(ctx, d, meta)
-	controller.GetComponent(d).Create(ctx, d, meta)
+	log.Print("[octal].[resourceOctalCertManagerCreate] Create the webhook component object")
+	webhookComponent := webhook.GetComponent(d)
+	log.Printf("[octal].[resourceOctalCertManagerCreate]::[ResourceComponent]:[webhookComponent]:[%p] Create the webhook component", &webhookComponent)
+	Create(ctx, d, meta, webhookComponent)
 
-	// manifests := []string{}
-	// manifests = append(manifests, webhook.GetComponent().GetDefaultDeployments()...)
-	// manifests = append(manifests, cainjector.GetComponent().GetDefaultDeployments()...)
-	// manifests = append(manifests, controller.GetComponent().GetDefaultDeployments()...)
-	// util.ResourceK8sManifestCreate(ctx, d, meta, manifests[0])
-	// createDeployments(ctx, meta, d, manifests)
+	log.Print("[octal].[resourceOctalCertManagerCreate] Create the cainjector component object")
+	cainjectorComponent := cainjector.GetComponent(d)
+	log.Printf("[octal].[resourceOctalCertManagerCreate]::[ResourceComponent]:[cainjectorComponent]:[%p] Create the cainjector component", &cainjectorComponent)
+	Create(ctx, d, meta, cainjectorComponent)
+
+	log.Print("[octal].[resourceOctalCertManagerCreate] Create the controller component object")
+	controllerComponent := controller.GetComponent(d)
+	log.Printf("[octal].[resourceOctalCertManagerCreate]::[ResourceComponent]:[controllerComponent]:[%p] Create the controller component", &cainjectorComponent)
+	Create(ctx, d, meta, controllerComponent)
 
 	resourceOctalCertManagerRead(ctx, d, meta)
 
@@ -99,13 +104,9 @@ func resourceOctalCertManagerCreate(ctx context.Context, d *schema.ResourceData,
 func resourceOctalCertManagerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	readDeployments(ctx, d, meta, []string{
-		"webhook",
-		"cainjector",
-		"controller",
-	})
-
-	readServiceAccount(ctx, d, meta)
+	Read(ctx, d, meta, webhook.GetComponent(d))
+	Read(ctx, d, meta, cainjector.GetComponent(d))
+	Read(ctx, d, meta, controller.GetComponent(d))
 
 	return diags
 }
@@ -113,13 +114,9 @@ func resourceOctalCertManagerRead(ctx context.Context, d *schema.ResourceData, m
 func resourceOctalCertManagerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	updateDeployments(ctx, d, meta, []string{
-		"webhook",
-		"cainjector",
-		"controller",
-	})
-
-	updateServiceAccount(ctx, d, meta)
+	Update(ctx, d, meta, webhook.GetComponent(d))
+	Update(ctx, d, meta, cainjector.GetComponent(d))
+	Update(ctx, d, meta, controller.GetComponent(d))
 
 	resourceOctalCertManagerRead(ctx, d, meta)
 
@@ -129,12 +126,9 @@ func resourceOctalCertManagerUpdate(ctx context.Context, d *schema.ResourceData,
 func resourceOctalCertManagerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	deleteDeployments(ctx, d, meta, []string{
-		"webhook",
-		"cainjector",
-		"controller",
-	})
-	deleteServiceAccount(ctx, d, meta)
+	Delete(ctx, d, meta, webhook.GetComponent(d))
+	Delete(ctx, d, meta, cainjector.GetComponent(d))
+	Delete(ctx, d, meta, controller.GetComponent(d))
 
 	return diags
 }

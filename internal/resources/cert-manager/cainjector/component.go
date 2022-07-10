@@ -2,12 +2,11 @@ package cainjector
 
 import (
 	"embed"
-	"fmt"
-	"reflect"
 
 	resource_component "github.com/dylanturn/terraform-provider-octal/internal/component"
 	"github.com/dylanturn/terraform-provider-octal/internal/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 //go:embed deployments/*
@@ -44,10 +43,6 @@ type Component resource_component.Component
 type ResourceComponent resource_component.ResourceComponent
 
 func GetComponent(d *schema.ResourceData) resource_component.Component {
-
-	type Empty struct{}
-	fmt.Printf("########### %s ##########", reflect.TypeOf(Empty{}).PkgPath())
-
 	componentName := "cainjector"
 	componentConfig := map[string]interface{}{}
 
@@ -55,7 +50,11 @@ func GetComponent(d *schema.ResourceData) resource_component.Component {
 	component, exists := d.GetOk(componentName)
 	if exists {
 		if component != nil && len(component.([]interface{})) > 0 {
-			componentConfig = component.([]interface{})[0].(map[string]interface{})
+			if component.([]interface{}) != nil {
+				if component.([]interface{})[0] != nil {
+					componentConfig = component.([]interface{})[0].(map[string]interface{})
+				}
+			}
 		}
 	}
 
@@ -63,6 +62,7 @@ func GetComponent(d *schema.ResourceData) resource_component.Component {
 		Name:                                    componentName,
 		Namespace:                               d.Get("namespace").(string),
 		Config:                                  componentConfig,
+		UnstructuredObjects:                     []unstructured.Unstructured{},
 		DeploymentManifests:                     util.ReadEmbeddedFiles(deployments),
 		ServiceAccountManifests:                 util.ReadEmbeddedFiles(serviceAccounts),
 		ServiceManifests:                        util.ReadEmbeddedFiles(services),

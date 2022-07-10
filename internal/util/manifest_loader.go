@@ -32,8 +32,6 @@ func ReadEmbeddedFiles(embeddedFs embed.FS) []string {
 
 	for _, directory := range embeddedDirectories {
 
-		fmt.Println(directory.Name())
-
 		fileList, err := embed.FS.ReadDir(embeddedFs, directory.Name())
 		if err != nil {
 			fmt.Println("Failed to read embedded directory", err.Error())
@@ -42,7 +40,6 @@ func ReadEmbeddedFiles(embeddedFs embed.FS) []string {
 		fileContentStrings := make([]string, len(fileList))
 
 		for index, file := range fileList {
-			fmt.Println(file.Name())
 			fileContents, err := embeddedFs.ReadFile(fmt.Sprintf("%s/%s", directory.Name(), file.Name()))
 			if err != nil {
 				fmt.Println("Failed to read file", err.Error())
