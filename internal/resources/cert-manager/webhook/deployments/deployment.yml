@@ -2,24 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: webhook
+    app.kubernetes.io/instance: "cert-manager"
+    app.kubernetes.io/version: "1.8.2"
     app.kubernetes.io/component: webhook
-    app.kubernetes.io/instance: cunning-martin
     app.kubernetes.io/managed-by: terraform
     app.kubernetes.io/name: cert-manager-schema-webhook
     app.kubernetes.io/part-of: cert-manager-schema
   name: cert-manager-schema-webhook
-  namespace: project-octal
+  namespace: {{ .namespace }}
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: webhook
-      app.kubernetes.io/instance: cunning-martin
+      app.kubernetes.io/instance: "cert-manager"
+      app.kubernetes.io/version: "1.8.2"
+      app.kubernetes.io/component: webhook
       app.kubernetes.io/managed-by: terraform
       app.kubernetes.io/name: cert-manager-schema-webhook
+      app.kubernetes.io/part-of: cert-manager-schema
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -28,14 +30,14 @@ spec:
   template:
     metadata:
       labels:
-        app: webhook
+        app.kubernetes.io/instance: "cert-manager"
+        app.kubernetes.io/version: "1.8.2"
         app.kubernetes.io/component: webhook
-        app.kubernetes.io/instance: cunning-martin
         app.kubernetes.io/managed-by: terraform
         app.kubernetes.io/name: cert-manager-schema-webhook
         app.kubernetes.io/part-of: cert-manager-schema
       name: cert-manager-schema-webhook
-      namespace: cert-manager-schema
+      namespace: {{ .namespace }}
     spec:
       automountServiceAccountToken: false
       containers:

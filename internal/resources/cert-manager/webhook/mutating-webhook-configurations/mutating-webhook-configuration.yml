@@ -3,8 +3,8 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: cert-manager-schema-webhook
   labels:
-    app.kubernetes.io/instance: ""
-    app.kubernetes.io/version: ""
+    app.kubernetes.io/instance: "cert-manager"
+    app.kubernetes.io/version: "1.8.2"
     app.kubernetes.io/name: cert-manager-schema-webhook
     app.kubernetes.io/component: webhook
     app.kubernetes.io/part-of: cert-manager-schema
@@ -23,7 +23,7 @@ webhooks:
     clientConfig:
       service:
         name: cert-manager-schema-webhook
-        namespace: cert-manager-schema
+        namespace: {{ .namespace }}
         path: /mutate
         port: 443
     admissionReviewVersions:

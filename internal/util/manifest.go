@@ -36,11 +36,11 @@ func ResourceK8sManifestCreate(ctx context.Context, d *schema.ResourceData, meta
 		return err
 	}
 
-	err = waitForReadyStatus(ctx, d, client, object, d.Timeout(schema.TimeoutCreate))
+	/*err = waitForReadyStatus(ctx, d, client, object, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		tflog.Error(ctx, err.Error())
 		return err
-	}
+	}*/
 
 	return nil
 }
@@ -151,7 +151,7 @@ func waitForReadyStatus(ctx context.Context, d *schema.ResourceData, c client.Cl
 func ResourceK8sManifestRead(ctx context.Context, d *schema.ResourceData, meta interface{}, componentPart map[string]interface{}) error {
 
 	name := componentPart["name"].(string)
-	namespace := d.Get("namespace").(string)
+	namespace := componentPart["namespace"].(string)
 	groupVersionKind := k8s_schema.GroupVersionKind{
 		Group:   componentPart["group"].(string),
 		Version: componentPart["version"].(string),

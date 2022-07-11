@@ -2,7 +2,6 @@ package octal
 
 import (
 	"context"
-	"log"
 	"time"
 
 	cainjector "github.com/dylanturn/terraform-provider-octal/internal/resources/cert-manager/cainjector"
@@ -81,20 +80,9 @@ func resourceOctalCertManagerCreate(ctx context.Context, d *schema.ResourceData,
 
 	d.SetId(resource.UniqueId())
 
-	log.Print("[octal].[resourceOctalCertManagerCreate] Create the webhook component object")
-	webhookComponent := webhook.GetComponent(d)
-	log.Printf("[octal].[resourceOctalCertManagerCreate]::[ResourceComponent]:[webhookComponent]:[%p] Create the webhook component", &webhookComponent)
-	Create(ctx, d, meta, webhookComponent)
-
-	log.Print("[octal].[resourceOctalCertManagerCreate] Create the cainjector component object")
-	cainjectorComponent := cainjector.GetComponent(d)
-	log.Printf("[octal].[resourceOctalCertManagerCreate]::[ResourceComponent]:[cainjectorComponent]:[%p] Create the cainjector component", &cainjectorComponent)
-	Create(ctx, d, meta, cainjectorComponent)
-
-	log.Print("[octal].[resourceOctalCertManagerCreate] Create the controller component object")
-	controllerComponent := controller.GetComponent(d)
-	log.Printf("[octal].[resourceOctalCertManagerCreate]::[ResourceComponent]:[controllerComponent]:[%p] Create the controller component", &cainjectorComponent)
-	Create(ctx, d, meta, controllerComponent)
+	Create(ctx, d, meta, webhook.GetComponent(d))
+	Create(ctx, d, meta, cainjector.GetComponent(d))
+	Create(ctx, d, meta, controller.GetComponent(d))
 
 	resourceOctalCertManagerRead(ctx, d, meta)
 

@@ -3,8 +3,8 @@ kind: ClusterRoleBinding
 metadata:
   name: cert-manager-schema-controller-issuers
   labels:
-    app.kubernetes.io/instance: ""
-    app.kubernetes.io/version: ""
+    app.kubernetes.io/instance: "cert-manager"
+    app.kubernetes.io/version: "1.8.2"
     app.kubernetes.io/name: cert-manager-schema
     app.kubernetes.io/component: controller
     app.kubernetes.io/part-of: cert-manager-schema
@@ -17,4 +17,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: cert-manager-schema
-    namespace: cert-manager-schema
+    namespace: {{ .namespace }}

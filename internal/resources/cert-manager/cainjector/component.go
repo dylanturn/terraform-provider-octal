@@ -75,5 +75,5 @@ func GetComponent(d *schema.ResourceData) resource_component.Component {
 		ValidatingWebhookConfigurationManifests: util.ReadEmbeddedFiles(validatingWebhookConfigurations),
 	}
 
-	return managedComponent
+	return &managedComponent
 }

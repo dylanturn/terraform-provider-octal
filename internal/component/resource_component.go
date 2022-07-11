@@ -35,16 +35,19 @@ type Component interface {
 	AddUnstructuredObject(unstructuredObjects unstructured.Unstructured)
 }
 
-func (component ResourceComponent) GetName() string {
+func (component *ResourceComponent) GetName() string {
 	return component.Name
 }
 
-func (component ResourceComponent) GetNamespace() string {
+func (component *ResourceComponent) GetNamespace() string {
 	return component.Namespace
 }
 
-func (component ResourceComponent) GetConfig() map[string]string {
+func (component *ResourceComponent) GetConfig() map[string]string {
 	flatmap := map[string]string{}
+
+	flatmap["namespace"] = component.Namespace
+
 	for k, v := range component.Config {
 		flattenConfig(k, v, flatmap)
 	}
@@ -52,10 +55,29 @@ func (component ResourceComponent) GetConfig() map[string]string {
 	return flatmap
 }
 
-func (component ResourceComponent) RenderManifests() []string {
+func (component *ResourceComponent) GetManifestTemplates() []string {
+	manifestTemplates := []string{}
+
+	manifestTemplates = append(manifestTemplates, component.CustomResourceDefinitionManifests...)
+	manifestTemplates = append(manifestTemplates, component.RoleManifests...)
+	manifestTemplates = append(manifestTemplates, component.ClusterRoleManifests...)
+	manifestTemplates = append(manifestTemplates, component.ServiceAccountManifests...)
+	manifestTemplates = append(manifestTemplates, component.RoleBindingManifests...)
+	manifestTemplates = append(manifestTemplates, component.ClusterRoleBindingManifests...)
+	manifestTemplates = append(manifestTemplates, component.MutatingWebhookConfigurationManifests...)
+	manifestTemplates = append(manifestTemplates, component.ValidatingWebhookConfigurationManifests...)
+	manifestTemplates = append(manifestTemplates, component.DeploymentManifests...)
+	manifestTemplates = append(manifestTemplates, component.ServiceManifests...)
+
+	return manifestTemplates
+}
+
+func (component *ResourceComponent) RenderManifests() []string {
+
 	renderedManifests := []string{}
 	log.Printf("[resource_component].[RenderManifests]::[ResourceComponent]:[component]:[%p] Rendering templates for component: %s |", &component, component.Name)
-	for _, manifest := range component.DeploymentManifests {
+	for _, manifest := range component.GetManifestTemplates() {
+
 		log.Printf("[resource_component].[RenderManifests]::[ResourceComponent]:[component]:[%p] Render component manifest |", &component)
 		// "You have a task named \"{{ .Name}}\" with description: \"{{ .Description}}\""
 		manifestTemplate, err := template.New(component.Name).Parse(manifest)
@@ -64,6 +86,7 @@ func (component ResourceComponent) RenderManifests() []string {
 		}
 
 		var parsedManifest bytes.Buffer
+		log.Println(component.GetConfig())
 		err = manifestTemplate.Execute(&parsedManifest, component.GetConfig())
 		if err != nil {
 			panic(err)
@@ -75,7 +98,7 @@ func (component ResourceComponent) RenderManifests() []string {
 	return renderedManifests
 }
 
-func (component ResourceComponent) AddUnstructuredObject(unstructuredObject unstructured.Unstructured) {
+func (component *ResourceComponent) AddUnstructuredObject(unstructuredObject unstructured.Unstructured) {
 	/* Objects getting added here
 	 ** 2022-07-10T10:34:32.593-0500 [INFO]  provider.terraform-provider-octal: 2022/07/10 10:34:32 ####!!!! Add unstructuredObject to component.UnstructuredObjects !!!!####: timestamp=2022-07-10T10:34:32.593-0500
 	 */
@@ -89,7 +112,7 @@ func (component ResourceComponent) AddUnstructuredObject(unstructuredObject unst
 	component.GetUnstructuredObjects()
 }
 
-func (component ResourceComponent) GetUnstructuredObjects() []unstructured.Unstructured {
+func (component *ResourceComponent) GetUnstructuredObjects() []unstructured.Unstructured {
 	log.Printf("[resource_component].[GetUnstructuredObjects]::[ResourceComponent]:[component]:[%p] Returning a list of %v Unstructured objects. |", &component, len(component.UnstructuredObjects))
 	return component.UnstructuredObjects
 }

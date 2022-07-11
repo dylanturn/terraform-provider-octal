@@ -3,10 +3,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from-secret: cert-manager-schema/cert-manager-schema-webhook-ca
-  labels:
-    app: cert-manager-schema
-    app.kubernetes.io/instance: cert-manager-schema
-    app.kubernetes.io/name: cert-manager-schema
   name: certificaterequests.cert-manager-schema.io
 spec:
   conversion:
@@ -15,7 +11,7 @@ spec:
       clientConfig:
         service:
           name: cert-manager-schema-webhook
-          namespace: cert-manager-schema
+          namespace: {{ .namespace }}
           path: /convert
       conversionReviewVersions:
         - v1
