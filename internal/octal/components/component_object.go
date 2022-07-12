@@ -35,35 +35,6 @@ type OctalComponentObject interface {
 	GetFlat() map[string]interface{}
 }
 
-func objectFromState(objectManifest string) (OctalComponentObject, error) {
-
-	object, err := contentToObject(objectManifest)
-	if err != nil {
-		return nil, err
-	}
-
-	objectSpec := object.Object["spec"]
-	objectSpecJson, marshallErr := json.Marshal(objectSpec)
-	if marshallErr != nil {
-		return nil, fmt.Errorf("marshall error! %s", marshallErr.Error())
-	}
-
-	componentObject := octalComponentObject{
-		group:        object.GetObjectKind().GroupVersionKind().Group,
-		version:      object.GetObjectKind().GroupVersionKind().Version,
-		kind:         object.GetObjectKind().GroupVersionKind().Kind,
-		name:         object.GetName(),
-		namespace:    object.GetNamespace(),
-		labels:       object.GetLabels(),
-		annotations:  object.GetLabels(),
-		manifest:     objectManifest,
-		specHash:     fmt.Sprintf("%x", sha256.Sum256(objectSpecJson)),
-		Unstructured: *object,
-	}
-
-	return &componentObject, nil
-}
-
 func objectFromManifest(objectManifest string) (OctalComponentObject, error) {
 
 	object, err := contentToObject(objectManifest)
