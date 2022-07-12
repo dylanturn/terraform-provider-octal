@@ -46,7 +46,8 @@ spec:
       name: cert-manager-schema
       namespace: {{ .namespace }}
     spec:
-      automountServiceAccountToken: false
+      serviceAccountName: cert-manager-schema
+      automountServiceAccountToken: true
       containers:
       - args:
         - --v=2
@@ -54,8 +55,8 @@ spec:
         - --leader-election-namespace=kube-system
         env:
         - name: POD_NAMESPACE
-          value: cert-manager-schema
-        image: quay.io/jetstack/cert-manager-schema-controller:v1.8.1
+          value: {{ .namespace }}
+        image: quay.io/jetstack/cert-manager-controller:v1.8.1
         imagePullPolicy: Always
         name: cert-manager-schema
         ports:
@@ -67,22 +68,9 @@ spec:
             memory: 128Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount/
-          mountPropagation: None
-          name: service-token
-          readOnly: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
       restartPolicy: Always
       schedulerName: default-scheduler
-      serviceAccount: cert-manager-schema
-      serviceAccountName: cert-manager-schema
       shareProcessNamespace: false
       terminationGracePeriodSeconds: 30
-      volumes:
-      - name: service-token
-        secret:
-          defaultMode: 420
-          optional: false
-          secretName: cert-manager-schema-token-76jsd

@@ -8,12 +8,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dylanturn/terraform-provider-octal/internal/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -50,14 +48,6 @@ func New(version string) func() *schema.Provider {
 	}
 }
 
-type apiClient struct {
-	// Add whatever fields, client or connection info, etc. here
-	// you would need to setup to communicate with the upstream
-	// API.
-	config    *restclient.Config
-	clientset *kubernetes.Clientset
-}
-
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 
 	return func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -82,7 +72,7 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			fmt.Printf("Failed to configure: %s", err)
 		}
 
-		clientApi := util.ProviderConfig{
+		clientApi := providerConfig{
 			RuntimeClient: c,
 		}
 
@@ -123,7 +113,7 @@ func GetKubeClient() *kubernetes.Clientset {
 	return clientset
 }
 
-func tryLoadingConfigFile() (*restclient.Config, error) {
+func tryLoadingConfigFile() (*rest.Config, error) {
 	path := "/Users/dylanturnbull/.kube/config"
 
 	loader := &clientcmd.ClientConfigLoadingRules{

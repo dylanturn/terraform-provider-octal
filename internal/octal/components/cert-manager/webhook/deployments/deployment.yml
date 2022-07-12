@@ -39,7 +39,8 @@ spec:
       name: cert-manager-schema-webhook
       namespace: {{ .namespace }}
     spec:
-      automountServiceAccountToken: false
+      serviceAccountName: cert-manager-schema-webhook
+      automountServiceAccountToken: true
       containers:
       - args:
         - --v=2
@@ -49,8 +50,8 @@ spec:
         - --dynamic-serving-dns-names=cert-manager-schema-webhook,cert-manager-schema-webhook.cert-manager-schema,cert-manager-schema-webhook.cert-manager-schema.svc
         env:
         - name: POD_NAMESPACE
-          value: cert-manager-schema
-        image: quay.io/jetstack/cert-manager-schema-webhook:v1.8.1
+          value: {{ .namespace }}
+        image: quay.io/jetstack/cert-manager-webhook:v1.8.1
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3
@@ -72,27 +73,17 @@ spec:
           successThreshold: 1
           timeoutSeconds: 1
         resources:
+          limits:
+            cpu: 1
+            memory: 512Mi
           requests:
             cpu: 250m
             memory: 128Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount/
-          mountPropagation: None
-          name: service-token
-          readOnly: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
       restartPolicy: Always
       schedulerName: default-scheduler
-      serviceAccount: cert-manager-schema-webhook
-      serviceAccountName: cert-manager-schema-webhook
       shareProcessNamespace: false
       terminationGracePeriodSeconds: 30
-      volumes:
-      - name: service-token
-        secret:
-          defaultMode: 420
-          optional: false
-          secretName: cert-manager-schema-webhook-token-ms9r2

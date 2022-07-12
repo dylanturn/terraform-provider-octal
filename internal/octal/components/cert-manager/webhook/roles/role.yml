@@ -18,6 +18,7 @@ rules:
       - secrets
     verbs:
       - create
+      - list
   - apiGroups:
       - ""
     resourceNames:
@@ -25,7 +26,6 @@ rules:
     resources:
       - secrets
     verbs:
-      - list
       - watch
       - update
       - get

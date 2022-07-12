@@ -35,7 +35,6 @@ resource "octal_cert_manager" "cert_manager" {
 
 ### Read-Only
 
-- `custom_resources` (List of Object) Additional annotations to add to the deployment (see [below for nested schema](#nestedatt--custom_resources))
 - `id` (String) The ID of this resource.
 
 <a id="nestedblock--cainjector"></a>
@@ -43,7 +42,22 @@ resource "octal_cert_manager" "cert_manager" {
 
 Read-Only:
 
-- `parts` (Map of Map of String)
+- `objects` (List of Object) (see [below for nested schema](#nestedatt--cainjector--objects))
+
+<a id="nestedatt--cainjector--objects"></a>
+### Nested Schema for `cainjector.objects`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `group` (String)
+- `kind` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `namespace` (String)
+- `spec_hash` (String)
+- `version` (String)
+
 
 
 <a id="nestedblock--controller"></a>
@@ -51,7 +65,22 @@ Read-Only:
 
 Read-Only:
 
-- `parts` (Map of Map of String)
+- `objects` (List of Object) (see [below for nested schema](#nestedatt--controller--objects))
+
+<a id="nestedatt--controller--objects"></a>
+### Nested Schema for `controller.objects`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `group` (String)
+- `kind` (String)
+- `labels` (Map of String)
+- `name` (String)
+- `namespace` (String)
+- `spec_hash` (String)
+- `version` (String)
+
 
 
 <a id="nestedblock--webhook"></a>
@@ -59,34 +88,21 @@ Read-Only:
 
 Read-Only:
 
-- `mutating_webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook--mutating_webhook))
-- `parts` (Map of Map of String)
-- `validating_webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook--validating_webhook))
+- `objects` (List of Object) (see [below for nested schema](#nestedatt--webhook--objects))
 
-<a id="nestedatt--webhook--mutating_webhook"></a>
-### Nested Schema for `webhook.mutating_webhook`
+<a id="nestedatt--webhook--objects"></a>
+### Nested Schema for `webhook.objects`
 
 Read-Only:
 
 - `annotations` (Map of String)
-- `component` (String)
+- `group` (String)
+- `kind` (String)
 - `labels` (Map of String)
 - `name` (String)
-- `resource_version` (String)
-- `uid` (String)
-
-
-<a id="nestedatt--webhook--validating_webhook"></a>
-### Nested Schema for `webhook.validating_webhook`
-
-Read-Only:
-
-- `annotations` (Map of String)
-- `component` (String)
-- `labels` (Map of String)
-- `name` (String)
-- `resource_version` (String)
-- `uid` (String)
+- `namespace` (String)
+- `spec_hash` (String)
+- `version` (String)
 
 
 
@@ -96,18 +112,5 @@ Read-Only:
 Optional:
 
 - `delete` (String)
-
-
-<a id="nestedatt--custom_resources"></a>
-### Nested Schema for `custom_resources`
-
-Read-Only:
-
-- `annotations` (Map of String)
-- `component` (String)
-- `labels` (Map of String)
-- `name` (String)
-- `resource_version` (String)
-- `uid` (String)
 
 
